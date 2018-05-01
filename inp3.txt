@@ -1,0 +1,1972 @@
+mapreduce - 
+wikipedia 
+https://en.wikipedia
+.org/wiki/mapreduce
+        
+mapreduce
+is a programming 
+model and an 
+associated 
+implementation for 
+processing and 
+generating
+sets with a 
+parallel, 
+distributed 
+algorithm on a 
+cluster.[1][2]
+mapreduce program 
+is composed of a 
+map procedure (or 
+method), which 
+performs filtering 
+and sorting (such 
+as sorting students 
+by first name into 
+queues, one queue 
+for each name), and 
+a reduce method, 
+which performs a 
+summary operation 
+(such as counting 
+the number of 
+students in each 
+queue, yielding 
+name frequencies). 
+the "mapreduce 
+system" (also 
+called 
+"infrastructure" or 
+"framework") 
+orchestrates the 
+processing by 
+marshalling the 
+distributed 
+servers, running 
+the various tasks 
+in parallel, 
+managing all 
+communications and 
+data transfers 
+between the various 
+parts of the 
+system, and 
+providing for 
+redundancy and 
+fault tolerance.
+model is a 
+specialization of 
+the 
+split-apply-combine 
+strategy for data 
+analysis.[3] it is 
+inspired by the map 
+and reduce 
+functions commonly 
+used in functional 
+programming,[4] 
+although their 
+purpose in the 
+mapreduce framework 
+is not the same as 
+in their original 
+forms.[5] the key 
+contributions of 
+the mapreduce 
+framework are not 
+the actual map and 
+reduce functions 
+(which, for 
+example, resemble 
+the 1995 message 
+passing interface 
+standard's[6] 
+reduce[7] and 
+scatter[8] 
+operations), but 
+the scalability and 
+fault-tolerance 
+achieved for a 
+variety of 
+applications by 
+optimizing the 
+execution engine. 
+as such, a single- 
+threaded 
+implementation of 
+mapreduce will 
+usually not be 
+faster than a 
+traditional 
+(non-mapreduce) 
+implementation; any 
+gains are usually 
+only seen with 
+multi-threaded 
+implementations.[9] 
+the use of this 
+model is beneficial 
+only when the 
+optimized 
+distributed shuffle 
+operation (which 
+reduces network 
+communication cost) 
+and fault tolerance 
+features of the 
+mapreduce framework 
+come into play. 
+optimizing the 
+communication cost 
+is essential to a 
+good mapreduce 
+algorithm.[10]
+uce libraries have 
+been written in 
+many programming 
+languages, with 
+different levels of 
+optimization. a 
+popular open-source 
+implementation that 
+has support for 
+distributed 
+shuffles is part of 
+apache hadoop. the 
+name mapreduce 
+originally referred 
+to the proprietary 
+google technology, 
+but has since been 
+genericized. by 
+2014, google was no 
+longer using 
+mapreduce as their 
+primary big data 
+processing 
+model,[11] and 
+development on 
+apache mahout had 
+moved on to more 
+capable and less 
+disk- oriented 
+mechanisms that 
+incorporated full 
+map and reduce 
+capabilities.[12]
+tents
+logical 
+view
+input reader
+function partition 
+function comparison 
+function
+wikipedia 
+https://en.wikipedia
+.org/wiki/mapreduce
+reduce function 
+output 
+writer
+considerations 
+distribution and 
+reliability 
+uses
+of 
+novelty
+programming 
+framework
+ and users groups 
+see 
+also
+of 
+mapreduce
+external 
+links
+ce is a framework 
+for processing 
+parallelizable 
+problems across 
+large datasets 
+using a large 
+number of computers 
+(nodes), 
+collectively 
+referred to as a 
+cluster (if all 
+nodes are on the 
+same local network 
+and use similar 
+hardware) or a grid 
+(if the nodes are 
+shared across 
+geographically and 
+administratively 
+distributed 
+systems, and use 
+more heterogenous 
+hardware). 
+processing can 
+occur on data 
+stored either in a 
+filesystem 
+(unstructured) or 
+in a database 
+(structured). 
+mapreduce can take 
+advantage of the 
+locality of data, 
+processing it near 
+the place it is 
+stored in order to 
+minimize 
+communication 
+overhead.
+mapreduce framework 
+(or system) is 
+usually composed of 
+three operations 
+(or steps):
+each worker node 
+applies the map 
+function to the 
+local data, and 
+writes the output 
+to a temporary 
+storage. a master 
+node ensures that 
+only one copy of 
+redundant input 
+data is 
+processed.
+shuffle: worker 
+nodes redistribute 
+data based on the 
+output keys 
+(produced by the 
+map function), such 
+that all data 
+belonging to one 
+key is located on 
+the same worker 
+node.
+worker nodes now 
+process each group 
+of output data, per 
+key, in 
+parallel.
+allows for 
+distributed 
+processing of the 
+map and reduction 
+operations. maps 
+can be performed in 
+parallel, provided 
+that each mapping 
+operation is 
+independent of the 
+others; in 
+practice, this is 
+limited by the 
+number of 
+independent data 
+sources and/or the 
+number of cpus near 
+each source. 
+similarly, a set of 
+'reducers' can 
+perform the 
+reduction phase, 
+provided that all 
+outputs of the map 
+operation that 
+share the same key 
+are presented to 
+the same reducer at 
+the same time, or 
+that the reduction 
+function is 
+associative. while 
+this process can 
+often appear 
+inefficient 
+compared to 
+algorithms that are 
+more sequential 
+(because multiple 
+instances of the 
+reduction process 
+must be run), 
+mapreduce can be 
+applied to 
+significantly 
+larger datasets 
+than "commodity" 
+servers can handle 
+– a large server 
+farm can use 
+mapreduce to sort a 
+petabyte of data in 
+only a few 
+hours.[13] the 
+parallelism also 
+offers some 
+possibility of 
+recovering from 
+partial failure of 
+servers or storage 
+during the 
+operation: if one 
+mapper or reducer 
+fails, the work can 
+be rescheduled – 
+assuming the input 
+data is still 
+available.
+way to look at 
+mapreduce is as a 
+5-step parallel and 
+distributed 
+computation:
+prepare the map() 
+input – the 
+"mapreduce system" 
+designates map 
+processors, assigns 
+the input
+- wikipedia 
+https://en.wikipedia
+.org/wiki/mapreduce
+key value k1 that 
+each processor 
+would work on, and 
+provides that 
+processor with all 
+the input data 
+associated with 
+that key value.
+run the 
+user-provided map() 
+code – map() is run 
+exactly once for 
+each k1 key value, 
+generating output 
+organized by key 
+values k2.
+"shuffle" the map 
+output to the 
+reduce processors – 
+the mapreduce 
+system designates 
+reduce processors, 
+assigns the k2 key 
+value each 
+processor should 
+work on, and 
+provides that 
+processor with all 
+the map-generated 
+data associated 
+with that key 
+value.
+user-provided 
+reduce() code – 
+reduce() is run 
+exactly once for 
+each k2 key value 
+produced by the map 
+step.
+final output – the 
+mapreduce system 
+collects all the 
+reduce output, and 
+sorts it by k2 to 
+produce the final 
+outcome.
+steps can be 
+logically thought 
+of as running in 
+sequence – each 
+step starts only 
+after the previous 
+step is completed – 
+although in 
+practice they can 
+be interleaved as 
+long as the final 
+result is not 
+affected.
+situations, the 
+input data might 
+already be 
+distributed 
+("sharded") among 
+many different 
+servers, in which 
+case step 1 could 
+sometimes be 
+greatly simplified 
+by assigning map 
+servers that would 
+process the locally 
+present input data. 
+similarly, step 3 
+could sometimes be 
+sped up by 
+assigning reduce 
+processors that are 
+as close as 
+possible to the 
+map-generated data 
+they need to 
+process.
+view
+reduce functions of 
+mapreduce are both 
+defined with 
+respect to data 
+structured in (key, 
+value) pairs. map 
+takes one pair of 
+data with a type in 
+one data domain, 
+and returns a list 
+of pairs in a 
+different 
+domain:
+list(k2,v2)
+function is applied 
+in parallel to 
+every pair (keyed 
+by k1) in the input 
+dataset. this 
+produces a list of 
+pairs (keyed by k2) 
+for each call. 
+after that, the 
+mapreduce framework 
+collects all pairs 
+with the same key 
+(k2) from all lists 
+and groups them 
+together, creating 
+one group for each 
+key.
+function is then 
+applied in parallel 
+to each group, 
+which in turn 
+produces a 
+collection of 
+values in the same 
+domain:
+list (v2)) → 
+list(v3)
+call typically 
+produces either one 
+value v3 or an 
+empty return, 
+though one call is 
+allowed to
+more than one 
+value. the returns 
+of all calls are 
+collected as the 
+desired result 
+list.
+mapreduce framework 
+transforms a list 
+of (key, value) 
+pairs into a list 
+of values. this 
+behavior is 
+different from the 
+typical functional 
+programming map and 
+reduce combination, 
+which accepts a 
+list of arbitrary 
+values and returns 
+one single value 
+that combines all 
+the values returned 
+by map.
+necessary but not 
+sufficient to have 
+implementations of 
+the map and reduce 
+abstractions in 
+order to implement 
+mapreduce. 
+distributed 
+implementations of 
+mapreduce require a 
+means of connecting 
+the processes 
+performing the map 
+and reduce phases. 
+this may be a 
+distributed file 
+system. other 
+options are 
+possible, such as 
+direct streaming 
+from mappers to 
+reducers, or for 
+the mapping 
+processors to serve 
+up their results to 
+reducers that query 
+them.
+wikipedia 
+https://en.wikipedia
+.org/wiki/mapreduce
+examples
+canonical mapreduce 
+example counts the 
+appearance of each 
+word in a set of 
+documents:[14]
+on map(string name, 
+string document): 
+// name: document 
+name
+document 
+contents
+word w in 
+document:
+1)
+reduce(string word, 
+iterator 
+partialcounts): // 
+word: a word
+partialcounts: a 
+list of aggregated 
+partial counts sum 
+= 0
+partialcounts: sum 
++= pc
+sum)
+document is split 
+into words, and 
+each word is 
+counted by the map 
+function, using the 
+word as the result 
+key. the framework 
+puts together all 
+the pairs with the 
+same key and feeds 
+them to the same 
+call to reduce. 
+thus, this function 
+just needs to sum 
+all of its input 
+values to find the 
+total appearances 
+of that word.
+another example, 
+imagine that for a 
+database of 1.1 
+billion people, one 
+would like to 
+compute the average 
+number of social 
+contacts a person 
+has according to 
+age. in sql, such a 
+query could be 
+expressed as:
+age, avg(contacts) 
+from 
+social.person
+by age order by 
+age
+the k1 key values 
+could be the 
+integers 1 through 
+1100, each 
+representing a 
+batch of 1 million 
+records, the k2 key 
+value could be a 
+person's age in 
+years, and this 
+computation could 
+be achieved using 
+the following 
+functions:
+map is
+integer k1 between 
+1 and 1100, 
+representing a 
+batch of 1 million 
+social.person 
+records for each 
+social.person 
+record in the k1 
+batch do
+the person's age
+n be the number of 
+contacts the person 
+has produce one 
+output record 
+(y,(n,1))
+repeat
+function
+reduce is
+(in years) y
+each input record 
+(y,(n,c)) do
+accumulate in s the 
+sum of 
+n*c
+cnew the sum of 
+c
+s/cnew
+output record 
+(y,(a,cnew))
+function
+mapreduce system 
+would line up the 
+1100 map 
+processors, and 
+would provide each 
+with its 
+corresponding 1 
+million input 
+records. the map 
+step would produce 
+1.1 billion 
+(y,(n,1)) records, 
+with y values 
+ranging between, 
+say, 8 and 103. the 
+mapreduce system 
+would then line up 
+the 96 reduce 
+processors by 
+performing 
+shuffling operation 
+of the key/value 
+pairs due to the 
+fact that we need 
+average
+wikipedia 
+https://en.wikipedia
+.org/wiki/mapreduce
+per age, and 
+provide each with 
+its millions of 
+corresponding input 
+records. the reduce 
+step would result 
+in the much reduced 
+set of only 96 
+output records 
+(y,a), which would 
+be put in the final 
+result file, sorted 
+by y.
+in the record is 
+important if the 
+processing is 
+reduced more than 
+one time. if we did 
+not add the count 
+of the records, the 
+computed average 
+would be wrong, for 
+example:
+output #1: age, 
+quantity of 
+contacts
+9
+#2: age, quantity 
+of contacts
+10, 9
+#3: age, quantity 
+of contacts
+we reduce files #1 
+and #2, we will 
+have a new file 
+with an average of 
+9 contacts for a 
+10-year-old 
+person
+):
+#1: age, average of 
+contacts
+reduce it with file 
+#3, we lose the 
+count of how many 
+records we've 
+already seen, so we 
+end up with an 
+average of 9.5 
+contacts for a 
+10-year-old person 
+((9+10)/2), which 
+is wrong. the 
+correct answer is 
+9.166 = 55 / 6 = 
+(9*3+9*2+10*1)/(3+2+
+1).
+frozen part of the 
+mapreduce framework 
+is a large 
+distributed sort. 
+the hot spots, 
+which the 
+application 
+defines, are:
+input reader
+function
+function a compare 
+function a reduce 
+function an output 
+writer
+reader
+reader divides the 
+input into 
+appropriate size 
+'splits' (in 
+practice, 
+typically, 64 mb to 
+128 mb) and the 
+framework assigns 
+one split to each 
+map function. the 
+input reader reads 
+data from stable 
+storage (typically, 
+a distributed file 
+system) and 
+generates key/value 
+pairs.
+example will read a 
+directory full of 
+text files and 
+return each line as 
+a record.
+- wikipedia 
+https://en.wikipedia
+.org/wiki/mapreduce
+map function
+function takes a 
+series of key/value 
+pairs, processes 
+each, and generates 
+zero or more output 
+key/value pairs. 
+the input and 
+output types of the 
+map can be (and 
+often are) 
+different from each 
+other.
+application is 
+doing a word count, 
+the map function 
+would break the 
+line into words and 
+output a key/value 
+pair for each word. 
+each output pair 
+would contain the 
+word as the key and 
+the number of 
+instances of that 
+word in the line as 
+the value.
+function
+function output is 
+allocated to a 
+particular reducer 
+by the 
+application's 
+partition function 
+for sharding 
+purposes. the 
+partition function 
+is given the key 
+and the number of 
+reducers and 
+returns the index 
+of the desired 
+reducer.
+default is to hash 
+the key and use the 
+hash value modulo 
+the number of 
+reducers. it is 
+important to pick a 
+partition function 
+that gives an 
+approximately 
+uniform 
+distribution of 
+data per shard for 
+load- balancing 
+purposes, otherwise 
+the mapreduce 
+operation can be 
+held up waiting for 
+slow reducers to 
+finish (i.e. the 
+reducers assigned 
+the larger shares 
+of the 
+non-uniformly 
+partitioned 
+data).
+map and reduce 
+stages, the data 
+are shuffled 
+(parallel-sorted / 
+exchanged between 
+nodes) in order to 
+move the data from 
+the map node that 
+produced them to 
+the shard in which 
+they will be 
+reduced. the 
+shuffle can 
+sometimes take 
+longer than the 
+computation time 
+depending on 
+network bandwidth, 
+cpu speeds, data 
+produced and time 
+taken by map and 
+reduce 
+computations.
+son function
+input for each 
+reduce is pulled 
+from the machine 
+where the map ran 
+and sorted using 
+the application's 
+comparison 
+function.
+function
+framework calls the 
+application's 
+reduce function 
+once for each 
+unique key in the 
+sorted order. the 
+reduce can iterate 
+through the values 
+that are associated 
+with that key and 
+produce zero or 
+more outputs.
+word count example, 
+the reduce function 
+takes the input 
+values, sums them 
+and generates a 
+single output of 
+the word and the 
+final sum.
+writer
+writer writes the 
+output of the 
+reduce to the 
+stable storage. 
+performance 
+considerations
+uce programs are 
+not guaranteed to 
+be fast. the main 
+benefit of this 
+programming model 
+is to exploit the 
+optimized shuffle 
+operation of the 
+platform, and only 
+having to write the 
+map and reduce 
+parts of the 
+program. in 
+practice, the 
+author of a 
+mapreduce program 
+however has to take 
+the shuffle step 
+into
+wikipedia 
+https://en.wikipedia
+.org/iki/mapreduce
+consideration; in 
+particular the 
+partition function 
+and the amount of 
+data written by the 
+map function can 
+have a large impact 
+on the performance 
+and scalability. 
+additional modules 
+such as the 
+combiner function 
+can help to reduce 
+the amount of data 
+written to disk, 
+and transmitted 
+over the network. 
+mapreduce 
+applications can 
+achieve sub-linear 
+speedups under 
+specific 
+circumstances.[15]
+en designing a 
+mapreduce 
+algorithm, the 
+author needs to 
+choose a good 
+tradeoff[10] 
+between the 
+computation and the 
+communication 
+costs. 
+communication cost 
+often dominates the 
+computation 
+cost,[10][15] and 
+many mapreduce 
+implementations are 
+designed to write 
+all communication 
+to distributed 
+storage for crash 
+recovery.
+performance of 
+mapreduce, the 
+complexity of 
+mapping, shuffle, 
+sorting (grouping 
+by the key), and 
+reducing has to be 
+taken into account. 
+the amount of data 
+produced by the 
+mappers is a key 
+parameter that 
+shifts the bulk of 
+the computation 
+cost between 
+mapping and 
+reducing. reducing 
+includes sorting 
+(grouping of the 
+keys) which has 
+nonlinear 
+complexity. hence, 
+small partition 
+sizes reduce 
+sorting time, but 
+there is a 
+trade-off because 
+having a large 
+number of reducers 
+may be impractical. 
+the influence of 
+split unit size is 
+marginal (unless 
+chosen particularly 
+badly, say <1mb). 
+the gains from some 
+mappers reading 
+load from local 
+disks, on average, 
+is minor.[16]
+processes that 
+complete quickly, 
+and where the data 
+fits into main 
+memory of a single 
+machine or a small 
+cluster, using a 
+mapreduce framework 
+usually is not 
+effective. since 
+these frameworks 
+are designed to 
+recover from the 
+loss of whole nodes 
+during the 
+computation, they 
+write interim 
+results to 
+distributed 
+storage. this crash 
+recovery is 
+expensive, and only 
+pays off when the 
+computation 
+involves many 
+computers and a 
+long runtime of the 
+computation. a task 
+that completes in 
+seconds can just be 
+restarted in the 
+case of an error, 
+and the likelihood 
+of at least one 
+machine failing 
+grows quickly with 
+the cluster size. 
+on such problems, 
+implementations 
+keeping all data in 
+memory and simply 
+restarting a 
+computation on node 
+failures or —when 
+the data is small 
+enough— 
+non-distributed 
+solutions will 
+often be faster 
+than a mapreduce 
+system.
+and 
+reliability
+ achieves 
+reliability by 
+parceling out a 
+number of 
+operations on the 
+set of data to each 
+node in the 
+network. each node 
+is expected to 
+report back 
+periodically with 
+completed work and 
+status updates. if 
+a node falls silent 
+for longer than 
+that interval, the 
+master node 
+(similar to the 
+master server in 
+the google file 
+system) records the 
+node as dead and 
+sends out the 
+node's assigned 
+work to other 
+nodes. individual 
+operations use 
+atomic operations 
+for naming file 
+outputs as a check 
+to ensure that 
+there are not 
+parallel 
+conflicting threads 
+running. when files 
+are renamed, it is 
+possible to also 
+copy them to 
+another name in 
+addition to the 
+name of the task 
+(allowing for 
+side-effects).
+reduce operations 
+operate much the 
+same way. because 
+of their inferior 
+properties with 
+regard to parallel 
+operations, the 
+master node 
+attempts to 
+schedule reduce 
+operations on the 
+same node, or in 
+the same rack as 
+the node holding 
+the data being 
+operated on. this 
+property is 
+desirable as it 
+conserves bandwidth 
+across the backbone 
+network of the 
+datacenter.
+ations are not 
+necessarily highly 
+reliable. for 
+example, in older 
+versions of hadoop 
+the namenode was a 
+single point of 
+failure for the 
+distributed 
+filesystem. later 
+versions of hadoop 
+have high 
+availability with 
+an active/passive 
+failover for the 
+"namenode."
+ - wikipedia 
+https://en.wikipedia
+.org/wiki/mapreduce
+uses
+useful in a wide 
+range of 
+applications, 
+including 
+distributed 
+pattern-based 
+searching, 
+distributed 
+sorting, web 
+link-graph 
+reversal, singular 
+value 
+decomposition,[17] 
+web access log 
+stats, inverted 
+index construction, 
+document 
+clustering, machine 
+learning,[18] and 
+statistical machine 
+translation. 
+moreover, the 
+mapreduce model has 
+been adapted to 
+several computing 
+environments like 
+multi-core and 
+many-core 
+systems,[19][20][21]
+ desktop grids,[22] 
+multi-cluster,[23] 
+volunteer computing 
+environments,[24] 
+dynamic cloud 
+environments,[25] 
+mobile 
+environments,[26] 
+and 
+high-performance 
+computing 
+environments.[27]
+google, mapreduce 
+was used to 
+completely 
+regenerate google's 
+index of the world 
+wide web. it 
+replaced the old ad 
+hoc programs that 
+updated the index 
+and ran the various 
+analyses.[28] 
+development at 
+google has since 
+moved on to 
+technologies such 
+as percolator, 
+flumejava[29] and 
+millwheel that 
+offer streaming 
+operation and 
+updates instead of 
+batch processing, 
+to allow 
+integrating "live" 
+search results 
+without rebuilding 
+the complete 
+index.[30]
+s stable inputs and 
+outputs are usually 
+stored in a 
+distributed file 
+system. the 
+transient data are 
+usually stored on 
+local disk and 
+fetched remotely by 
+the 
+reducers.
+ck of novelty
+dewitt and michael 
+stonebraker, 
+computer scientists 
+specializing in 
+parallel databases 
+and shared- nothing 
+architectures, have 
+been critical of 
+the breadth of 
+problems that 
+mapreduce can be 
+used for.[31] they 
+called its 
+interface too 
+low-level and 
+questioned whether 
+it really 
+represents the 
+paradigm shift its 
+proponents have 
+claimed it is.[32] 
+they challenged the 
+mapreduce 
+proponents' claims 
+of novelty, citing 
+teradata as an 
+example of prior 
+art that has 
+existed for over 
+two decades. they 
+also compared 
+mapreduce 
+programmers to 
+codasyl 
+programmers, noting 
+both are "writing 
+in a low-level 
+language performing 
+low- level record 
+manipulation."[32] 
+mapreduce's use of 
+input files and 
+lack of schema 
+support prevents 
+the performance 
+improvements 
+enabled by common 
+database system 
+features such as 
+b-trees and hash 
+partitioning, 
+though projects 
+such as pig (or 
+piglatin), sawzall, 
+apache hive,[33] 
+ysmart 
+(https://archive.is 
+/20121214201610/http
+://ysmart.cse.ohio-s
+tate.edu/),[34] 
+hbase[35] and 
+bigtable[35][36] 
+are addressing some 
+of these 
+problems.
+jorgensen wrote an 
+article rejecting 
+these views.[37] 
+jorgensen asserts 
+that dewitt and 
+stonebraker's 
+entire analysis is 
+groundless as 
+mapreduce was never 
+designed nor 
+intended to be used 
+as a 
+database.
+stonebraker have 
+subsequently 
+published a 
+detailed benchmark 
+study in 2009 
+comparing 
+performance of 
+hadoop's mapreduce 
+and rdbms 
+approaches on 
+several specific 
+problems.[38] they 
+concluded that 
+relational 
+databases offer 
+real advantages for 
+many kinds of data 
+use, especially on 
+complex processing 
+or where the data 
+is used across an 
+enterprise, but 
+that mapreduce may 
+be easier for users 
+to adopt for simple 
+or one-time 
+processing 
+tasks.
+been granted a 
+patent on 
+mapreduce.[39] 
+however, there have 
+been claims that 
+this patent should 
+not have been 
+granted because 
+mapreduce is too 
+similar to existing 
+products. for 
+example, 
+map
+wikipedia 
+https://en.wikipedia
+.org/wiki/mapreduce
+and reduce 
+functionality can 
+be very easily 
+implemented in 
+oracle's pl/sql 
+database oriented 
+language[40] or is 
+supported for 
+developers 
+transparently in 
+distributed 
+database 
+architectures such 
+as clusterpoint xml 
+database[41] or 
+mongodb nosql 
+database.[42]
+ted programming 
+framework
+tasks must be 
+written as acyclic 
+dataflow programs, 
+i.e. a stateless 
+mapper followed by 
+a stateless 
+reducer, that are 
+executed by a batch 
+job scheduler. this 
+paradigm makes 
+repeated querying 
+of datasets 
+difficult and 
+imposes limitations 
+that are felt in 
+fields such as 
+machine learning, 
+where iterative 
+algorithms that 
+revisit a single 
+working set 
+multiple times are 
+the 
+norm.[43]
+ and users 
+groups
+international 
+workshop on 
+mapreduce and its 
+applications 
+(mapreduce'10) 
+(https://web.archive
+.org/web/20100114053
+209/http://graal.ens
+-lyon.fr/mapreduce/)
+ was held in june 
+2010 with the hpdc 
+conference and 
+ogf'29 meeting in 
+chicago, 
+il.
+groups 
+(http://mapreduce.me
+etup.com/) around 
+the world.
+also
+lemma
+ of mapreduce
+hadoop
+couchdb
+project 
+(http://discoproject
+.org/) 
+infinispan
+nces
+spotlights data 
+center inner 
+workings | tech 
+news blog - cnet 
+news.com 
+(http://news.cnet.co
+m/8301-10784_3-99551
+84-7.html)
+mapreduce: 
+simplified data 
+processing on large 
+clusters 
+(http://static.googl
+eusercontent.com/med
+ia 
+/research.google.com
+/es/us/archive/mapre
+duce-osdi04.pdf)
+wickham, hadley 
+(2011). "the 
+split-apply-combine 
+strategy for data 
+analysis". journal 
+of statistical 
+software. 40: 1–29. 
+doi:10.18637/jss.v04
+0.i01 
+(https://doi.org/10.
+18637%2fjss.v040.i01
+).
+abstraction is 
+inspired by the map 
+and reduce 
+primitives present 
+in lisp and many 
+other functional 
+languages." 
+-"mapreduce: 
+simplified data 
+processing on large 
+clusters" 
+(http://research.goo
+gle.com/archive/mapr
+educe.html), by 
+jeffrey dean and 
+sanjay ghemawat; 
+from google 
+research
+r. (2008). 
+"google's map 
+reduce programming 
+model — revisited". 
+science of computer 
+programming. 70: 
+1–30. 
+doi:10.1016/j.scico.
+2007.07.001 
+(https://doi.org 
+/10.1016%2fj.scico.2
+007.07.001).
+http://www.mcs.anl.g
+ov/research/projects
+/mpi/mpi-standard/mp
+i-report-2.0/mpi2-re
+port.htm mpi 2 
+standard
+      mapreduce - 
+wikipedia 
+https://en.wikipedia
+.org/wiki/mapreduce
+7. tutorial on mpi 
+reduce and all 
+reduce 
+(http://mpitutorial.
+com/tutorials/mpi-re
+duce-and-allreduce/)
+8. mpi tutorial 
+scatter and gather 
+(http://mpitutorial.
+com/tutorials/perfor
+ming-parallel-rank-w
+ith-mpi/)
+"mongodb: terrible 
+mapreduce 
+performance" 
+(https://stackoverfl
+ow.com/questions/394
+7889 
+/mongodb-terrible-ma
+preduce-performance)
+. stack overflow. 
+october 16, 2010. 
+"the mapreduce 
+implementation in 
+mongodb has little 
+to do with map 
+reduce apparently. 
+because for all i 
+read, it is 
+single-threaded, 
+while map-reduce is 
+meant to be used 
+highly parallel on 
+a cluster. ... 
+mongodb mapreduce 
+is single threaded 
+on a single 
+server..."
+ullman, j. d. 
+(2012). "designing 
+good mapreduce 
+algorithms" 
+(http://xrds.acm.org
+ 
+/article.cfm?aid=233
+1053). xrds: 
+crossroads, the acm 
+magazine for 
+students. 
+association for 
+computing 
+machinery. 19: 30. 
+doi:10.1145/2331042.
+2331053 
+(https://doi.org 
+/10.1145%2f2331042.2
+331053). 
+(subscription 
+required 
+(help)).
+sverdlik, yevgeniy 
+(2014-06-25). 
+"google dumps 
+mapreduce in favor 
+of new hyper-scale 
+analytics system" 
+(http://www.datacent
+erknowledge.com/arch
+ives/2014/06/25/goog
+le-dumps-mapreduce-f
+avor- 
+new-hyper-scale-anal
+ytics-system/). 
+data center 
+knowledge. 
+retrieved 
+2015-10-25. ""we 
+don't really use 
+mapreduce anymore" 
+[urs hölzle, senior 
+vice president of 
+technical 
+infrastructure at 
+google]"
+derrick 
+(2014-03-27). 
+"apache mahout, 
+hadoop's original 
+machine learning 
+project, is moving 
+on from mapreduce" 
+(https://gigaom.com/
+2014/03/27/apache-ma
+hout-hadoops-origina
+l-machine- 
+learning-project-is-
+moving-on-from-mapre
+duce/). gigaom. 
+retrieved 
+2015-09-24. "apache 
+mahout [...] is 
+joining the exodus 
+away from 
+mapreduce."
+czajkowski, 
+grzegorz,; marián 
+dvorský; jerry 
+zhao; michael 
+conley. "sorting 
+petabytes with 
+mapreduce – the 
+next episode" 
+(http://googleresear
+ch.blogspot.com/2011
+/09/sorting-petabyte
+s-with- 
+mapreduce-next.html)
+. google. retrieved 
+7 april 2014.
+example: count word 
+occurrences 
+(http://research.goo
+gle.com/archive/mapr
+educe-osdi04-slides 
+/index-auto-0004.htm
+l). 
+research.google.com.
+ retrieved on 
+2013-09-18.
+senger, hermes; 
+gil-costa, 
+veronica; arantes, 
+luciana; marcondes, 
+cesar a. c.; marín, 
+mauricio; sato, 
+liria m.; da silva, 
+fabrício a.b. 
+(2015-01-01). "bsp 
+cost and 
+scalability 
+analysis for 
+mapreduce 
+operations" 
+(http://onlinelibrar
+y.wiley.com/doi/10.1
+002/cpe.3628/abstrac
+t). concurrency and 
+computation: 
+practice and 
+experience. 28: 
+2503–2527. 
+doi:10.1002/cpe.3628
+ (https://doi.org 
+/10.1002%2fcpe.3628)
+. issn 1532-0634 
+(https://www.worldca
+t.org/issn/1532-0634
+).
+joanna; drozdowski, 
+maciej 
+(2010-12-01). 
+"scheduling 
+divisible mapreduce 
+computations" 
+(http://www.scienced
+irect.com/science/ar
+ticle/pii/s074373151
+0002698). journal 
+of parallel and 
+distributed 
+computing. 71: 
+450–459. 
+doi:10.1016/j.jpdc.2
+010.12.004 
+(https://doi.org 
+/10.1016%2fj.jpdc.20
+10.12.004). 
+retrieved 
+2016-01-14.
+bosagh zadeh, reza; 
+carlsson, gunnar. 
+"dimension 
+independent matrix 
+square using 
+mapreduce" 
+(http://stanford.edu
+/~rezab/papers/dimsu
+m.pdf) (pdf). 
+retrieved 12 july 
+2014.
+y.; bradski, gary; 
+chu, cheng-tao; 
+olukotun, kunle; 
+kim, sang kyun; 
+lin, yi-an; yu, 
+yuanyuan. 
+"map-reduce for 
+machine learning on 
+multicore" 
+(http://www.willowga
+rage.com/map- 
+reduce-machine-learn
+ing-multicore). 
+nips 2006.
+ranger, c.; 
+raghuraman, r.; 
+penmetsa, a.; 
+bradski, g.; 
+kozyrakis, c. 
+(2007). "evaluating 
+mapreduce for 
+multi-core and 
+multiprocessor 
+systems". 2007 ieee 
+13th international 
+symposium on high 
+performance 
+computer 
+architecture. p. 
+13. 
+doi:10.1109/hpca.200
+7.346181 
+(https://doi.org 
+/10.1109%2fhpca.2007
+.346181). isbn 
+1-4244-0804-0.
+he, b.; fang, w.; 
+luo, q.; 
+govindaraju, n. k.; 
+wang, t. (2008). 
+"mars: a mapreduce 
+framework on 
+graphics 
+processors". 
+proceedings of the 
+17th international 
+conference on 
+parallel 
+architectures and 
+compilation 
+techniques – pact 
+'08 
+(http://wenbin.org/d
+oc/papers/wenbin08pa
+ct.pdf) (pdf). p. 
+260. 
+doi:10.1145/1454115.
+1454152 
+(https://doi.org/10.
+1145%2f1454115.14541
+52). isbn 
+9781605582825.
+uce - wikipedia 
+https://en.wikipedia
+.org/wiki/mapreduce
+21. chen, r.; chen, 
+h.; zang, b. 
+(2010). 
+"tiled-mapreduce: 
+optimizing resource 
+usages of 
+data-parallel 
+applications on 
+multicore with 
+tiling". 
+proceedings of the 
+19th international 
+conference on 
+parallel 
+architectures and 
+compilation 
+techniques – pact 
+'10. p. 523. 
+doi:10.1145/1854273.
+1854337 
+(https://doi.org/10.
+1145%2f1854273.18543
+37). isbn 
+9781450301787.
+tang, b.; moca, m.; 
+chevalier, s.; he, 
+h.; fedak, g. 
+(2010). "towards 
+mapreduce for 
+desktop grid 
+computing". 2010 
+international 
+conference on p2p, 
+parallel, grid, 
+cloud and internet 
+computing 
+(http://graal.ens-ly
+on.fr/~gfedak/papers
+/xtremmapreduce.3pgc
+ic10.pdf) (pdf). p. 
+193. 
+doi:10.1109/3pgcic.2
+010.33 
+(https://doi.org/10.
+1109%2f3pgcic.2010.3
+3).
+978-1-4244-8538-3.
+. luo, y.; guo, z.; 
+sun, y.; plale, b.; 
+qiu, j.; li, w. 
+(2011). "a 
+hierarchical 
+framework for 
+cross-domain 
+mapreduce 
+execution" 
+(http://yuanluo.net/
+publications/luo_ecm
+ls2011.pdf) (pdf). 
+proceedings of the 
+second 
+international 
+workshop on 
+emerging 
+computational 
+methods for the 
+life sciences 
+(ecmls '11). 
+doi:10.1145/1996023.
+1996026 
+(https://doi.org/10.
+1145%2f1996023.19960
+26).
+978-1-4503-0702-4.
+. lin, h.; ma, x.; 
+archuleta, j.; 
+feng, w. c.; 
+gardner, m.; zhang, 
+z. (2010). "moon: 
+mapreduce on 
+opportunistic 
+environments". 
+proceedings of the 
+19th acm 
+international 
+symposium on high 
+performance 
+distributed 
+computing – hpdc 
+'10 
+(http://eprints.cs.v
+t.edu/archive/000010
+89 /01/moon.pdf) 
+(pdf). p. 95. 
+doi:10.1145/1851476.
+1851489 
+(https://doi.org 
+/10.1145%2f1851476.1
+851489). isbn 
+9781605589428.
+marozzo, f.; talia, 
+d.; trunfio, p. 
+(2012). 
+"p2p-mapreduce: 
+parallel data 
+processing in 
+dynamic cloud 
+environments" 
+(http://grid.deis.un
+ical.it/papers/pdf/m
+arozzotaliatrunfiojc
+ss2012.pdf) (pdf). 
+journal of computer 
+and system 
+sciences. 78 (5): 
+1382–1402. 
+doi:10.1016/j.jcss.2
+011.12.021 
+(https://doi.org 
+/10.1016%2fj.jcss.20
+11.12.021).
+a.; kalogeraki, v.; 
+gunopulos, d.; 
+mielikainen, t.; 
+tuulos, v. h. 
+(2010). "misco: a 
+mapreduce framework 
+for mobile 
+systems". 
+proceedings of the 
+3rd international 
+conference on 
+pervasive 
+technologies 
+related to 
+assistive 
+environments – 
+petra '10. p. 1. 
+doi:10.1145/1839294.
+1839332 
+(https://doi.org/10.
+1145%2f1839294.18393
+32). isbn 
+9781450300711.
+"characterization 
+and optimization of 
+memory-resident 
+mapreduce on hpc 
+systems" 
+(http://ieeexplore.i
+eee.org/document/687
+7311/) (pdf). ieee. 
+october 2014.
+"how google works" 
+(http://www.baseline
+mag.com/c/a/infrastr
+ucture/how-google-wo
+rks-1/5). 
+baselinemag.com. 
+"as of october, 
+google was running 
+about 3,000 
+computing jobs per 
+day through 
+mapreduce, 
+representing 
+thousands of 
+machine-days, 
+according to a 
+presentation by 
+dean. among other 
+things, these batch 
+routines analyze 
+the latest web 
+pages and update 
+google's 
+indexes."
+chambers, craig; 
+raniwala, ashish; 
+perry, frances; 
+adams, stephen; 
+henry, robert r.; 
+bradshaw, robert; 
+weizenbaum, nathan 
+(1 january 2010). 
+"flumejava: easy, 
+efficient 
+data-parallel 
+pipelines" 
+(https://static.goog
+leusercontent.com/me
+dia/research.google.
+com/en//pubs/archive
+/35650.pdf) (pdf). 
+proceedings of the 
+31st acm sigplan 
+conference on 
+programming 
+language design and 
+implementation. 
+acm: 363–375. 
+doi:10.1145/1806596.
+1806638 
+(https://doi.org 
+/10.1145%2f1806596.1
+806638). retrieved 
+4 august 2016.
+peng, d., & dabek, 
+f. (2010, october). 
+large-scale 
+incremental 
+processing using 
+distributed 
+transactions and 
+notifications. in 
+osdi (vol. 10, pp. 
+1-15).
+experts jump the 
+mapreduce shark" 
+(http://typicalprogr
+ammer.com/relational
+-database- 
+experts-jump-the-map
+reduce-shark).
+david dewitt; 
+michael 
+stonebraker. 
+"mapreduce: a major 
+step backwards" 
+(http://craig- 
+henderson.blogspot.c
+om/2009/11/dewitt-an
+d-stonebrakers-mapre
+duce-major.html). 
+craig- 
+henderson.blogspot.c
+om. retrieved 
+2008-08-27.
+"apache hive – 
+index of – apache 
+software 
+foundation" 
+(https://cwiki.apach
+e.org/confluence/dis
+play /hive/home).
