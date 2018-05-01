@@ -17,7 +17,7 @@ struct slice
     int end_offset;
 };
 
-int check_input(const int mnum, const int rnum, const string &path)
+int check_console_input(const int mnum, const int rnum, const string &path)
 {
     int result = 0;
     if (mnum < 0)
@@ -79,8 +79,12 @@ int split_file(const string &path, const int slices_count, vector<slice> &offset
     return 0;
 }
 
-//template<class Mapper>
-void mapper_thread(const std::string &path_, const slice &slice_, vector<string> &strings, std::function<void(string &)> m)
+auto mapper = [] (string &line, vector<string> &strings)
+{
+    strings.push_back(line);
+};
+
+void mapper_thread(const std::string &path_, const slice &slice_, vector<string> &strings, std::function<void(string &, vector<string> &)> m)
 {
     ifstream f(path_, ios_base::in);
     if(!f.is_open())
@@ -92,7 +96,7 @@ void mapper_thread(const std::string &path_, const slice &slice_, vector<string>
     f.seekg(slice_.begin_offset);
     while (std::getline(f, line) && (f.tellg() <= slice_.end_offset))
     {
-        m(line);
+        m(line, strings);
     }
 
     std::sort(strings.begin(), strings.end());
@@ -127,7 +131,7 @@ int main(int argc, char* argv[])
             return 1;
         }
 
-        if(check_input(mnum, rnum, path))
+        if(check_console_input(mnum, rnum, path))
         {
             return 1;
         }
@@ -135,17 +139,6 @@ int main(int argc, char* argv[])
         vector<slice> slices;
         if(!split_file(path, mnum, slices))
         {
-            ifstream f(path, ios::binary);
-            for (auto s : slices)
-            {
-                f.seekg(s.begin_offset);
-                char b = f.peek();
-
-                f.seekg(s.end_offset);
-                char e = f.peek();
-
-                cout << "slice begin = " << s.begin_offset << " ( " << b << " ), end = " << s.end_offset << " ( " << e << " )\n";
-            }
 
             //Mapper
             vector<vector<string>> input_strings;
@@ -155,13 +148,7 @@ int main(int argc, char* argv[])
             for(auto i = 0; i < mnum; ++i)
             {
                 input_strings.push_back(vector<string>());
-                auto& strings = input_strings.back();
-                auto mapper = [&strings] (string &line)
-                {
-                    strings.push_back(line);
-                };
-
-                mapper_threads.push_back(thread(mapper_thread, std::ref(path), std::ref(slices[i]), std::ref(strings), mapper));
+                mapper_threads.push_back(thread(mapper_thread, std::ref(path), std::ref(slices[i]), std::ref(input_strings.back()), mapper));
             }
 
             for(auto &t : mapper_threads)
