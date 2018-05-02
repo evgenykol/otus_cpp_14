@@ -22,7 +22,6 @@ set_target_properties(yamr
 )
 
 target_link_libraries(yamr
-    ${Boost_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
 )
 

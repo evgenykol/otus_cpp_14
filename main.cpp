@@ -18,6 +18,14 @@ using shuffle_data_t = tuple<unique_ptr<mutex>, values_t >;
 using mapper_t = std::function<void(const string &, values_t &)>;
 using reducer_t = std::function<void(const values_t &, values_t &)>;
 
+//https://en.cppreference.com/w/cpp/memory/unique_ptr/make_unique
+//for Travis build
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args)
+{
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
 struct slice
 {
     int begin_offset;
