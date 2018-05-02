@@ -20,11 +20,11 @@ using reducer_t = std::function<void(const values_t &, values_t &)>;
 
 //https://en.cppreference.com/w/cpp/memory/unique_ptr/make_unique
 //for Travis build
-template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args)
-{
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
+//template<typename T, typename... Args>
+//std::unique_ptr<T> make_unique(Args&&... args)
+//{
+//    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+//}
 
 struct slice
 {
@@ -281,12 +281,13 @@ int main(int argc, char* argv[])
                 unique_copy(values.begin(), values.end(), back_inserter(result));
                 auto last_found = result.begin();
 
-                for(int i = 1; ; ++i)
+                int min_prefix = 1;
+                for(;; ++min_prefix)
                 {
                     auto it = adjacent_find(result.begin(), result.end(),
-                                       [i](string &first, string &second)
+                                       [min_prefix](string &first, string &second)
                                         {
-                                            return first.substr(0, i) == second.substr(0, i);
+                                            return first.substr(0, min_prefix) == second.substr(0, min_prefix);
                                         }
                                        );
                     if(it != result.end())
@@ -300,7 +301,7 @@ int main(int argc, char* argv[])
                 }
                 string unique_prefix_string = *last_found;
                 result.clear();
-                result.push_back(unique_prefix_string);
+                result.push_back(unique_prefix_string.substr(0, min_prefix));
             };
             do_reduce(rnum, shuffle_data, reducer);
         }
