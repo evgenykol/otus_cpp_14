@@ -14,7 +14,9 @@
 using namespace std;
 
 using values_t = vector<string>;
-using reducer_data_t = tuple<unique_ptr<mutex>, values_t, thread>;
+using shuffle_data_t = tuple<unique_ptr<mutex>, values_t >;
+using mapper_t = std::function<void(const string &, values_t &)>;
+using reducer_t = std::function<void(const values_t &, values_t &)>;
 
 struct slice
 {
@@ -70,6 +72,10 @@ int split_file(const string &path, const int slices_count, vector<slice> &offset
             f.seekg(slice_size, ios_base::cur);
             while ((f.get() != '\n') && (f.peek() != EOF));
             cur_offset = f.tellg();
+            if(cur_offset == EOF)
+            {
+                cur_offset = file_size;
+            }
         }
         else
         {
@@ -77,7 +83,6 @@ int split_file(const string &path, const int slices_count, vector<slice> &offset
         }
 
         slc.end_offset = cur_offset;
-        --slc.end_offset;
         offsets.push_back(slc);
     }
 
@@ -86,12 +91,7 @@ int split_file(const string &path, const int slices_count, vector<slice> &offset
     return 0;
 }
 
-auto mapper = [] (string &line, values_t &strings)
-{
-    strings.push_back(line);
-};
-
-void mapper_thread(const std::string &path_, const slice &slice_, values_t &strings, std::function<void(string &, values_t &)> m)
+void mapper_thread(const std::string &path_, const slice &slice_, values_t &strings, mapper_t m)
 {
     ifstream f(path_, ios_base::in);
     if(!f.is_open())
@@ -111,15 +111,15 @@ void mapper_thread(const std::string &path_, const slice &slice_, values_t &stri
     f.close();
 }
 
-void do_map(int mnum_, const std::string &path_, const vector<slice> &slices_, vector<values_t> &input_strings_)
+void do_map(const std::string &path_, const vector<slice> &slices_, vector<values_t> &input_strings_, mapper_t m)
 {
-    input_strings_.reserve(mnum_);
+    input_strings_.reserve(slices_.size());
     vector<thread> mapper_threads;
 
-    for(auto i = 0; i < mnum_; ++i)
+    for(auto i = 0; i < slices_.size(); ++i)
     {
         input_strings_.push_back(values_t());
-        mapper_threads.push_back(thread(mapper_thread, std::ref(path_), std::ref(slices_[i]), std::ref(input_strings_.back()), mapper));
+        mapper_threads.push_back(thread(mapper_thread, std::ref(path_), std::ref(slices_[i]), std::ref(input_strings_.back()), m));
     }
 
     for(auto &t : mapper_threads)
@@ -127,6 +127,7 @@ void do_map(int mnum_, const std::string &path_, const vector<slice> &slices_, v
         t.join();
     }
 
+    cout << "input_strings_ size = " << input_strings_.size() << " slices " << slices_.size() << endl;
     for(auto vct : input_strings_)
     {
         cout << "container size = " << vct.size()
@@ -135,37 +136,27 @@ void do_map(int mnum_, const std::string &path_, const vector<slice> &slices_, v
     }
 }
 
-
-void shuffle_thread(int rnum_, const values_t &strings_, vector<reducer_data_t> &rdata_)
-{
-    for(auto s : strings_)
-    {
-        int rcont_id = hash<string>{}(s) % rnum_;
-        //rdata_[rcont_id].insert(s);
-    }
-}
-
-void do_shuffle(int mnum_, int rnum_, const vector<values_t> &strings_, vector<reducer_data_t> &rdata_)
+void do_shuffle(int rnum_, const vector<values_t> &strings_, vector<shuffle_data_t> &sdata_)
 {
     vector<thread> shuffle_threads;
 
-    rdata_.resize(rnum_);
-    for(auto &r : rdata_)
+    sdata_.resize(rnum_);
+    for(auto &r : sdata_)
     {
         get<0>(r) = move(make_unique<mutex>());
     }
 
-    for(auto i = 0; i < mnum_; ++i)
+    for(auto i = 0; i < strings_.size(); ++i)
     {
         const values_t &values = strings_[i];
         shuffle_threads.push_back(
-                    thread([rnum_, values, &rdata_]
+                    thread([rnum_, values, &sdata_]
                             {
                                 for(auto s : values)
                                 {
                                     int r_id = hash<string>{}(s) % rnum_;
-                                    auto &m = get<0>(rdata_[r_id]);
-                                    auto &strs = get<1>(rdata_[r_id]);
+                                    auto &m = get<0>(sdata_[r_id]);
+                                    auto &strs = get<1>(sdata_[r_id]);
 
                                     lock_guard<mutex> lk(*m);
                                     auto it = lower_bound(strs.begin(), strs.end(), s);
@@ -181,7 +172,7 @@ void do_shuffle(int mnum_, int rnum_, const vector<values_t> &strings_, vector<r
         t.join();
     }
 
-    for(auto &rd : rdata_)
+    for(auto &rd : sdata_)
     {
         auto &values = get<1>(rd);
         cout << "container size = " << values.size()
@@ -190,6 +181,40 @@ void do_shuffle(int mnum_, int rnum_, const vector<values_t> &strings_, vector<r
     }
 }
 
+void do_reduce(int rnum_, const vector<shuffle_data_t> &sdata_, reducer_t r)
+{
+    vector<thread> reducer_threads;
+
+    for(auto i = 0; i < rnum_; ++i)
+    {
+        auto &values = get<1>(sdata_[i]);
+        reducer_threads.push_back(
+                    thread([i, values, r]
+                            {
+                                values_t result;
+
+                                r(values, result);
+
+                                string filename = "r_" + to_string(i) + ".txt";
+                                ofstream f(filename, ios_base::out);
+
+                                //f << result.size() << endl;
+                                for(auto &s : result)
+                                {
+                                    f << s << "\nlen = "<< s.length() << endl;
+                                }
+                                f.flush();
+                                f.close();
+                            }
+                        )
+                    );
+    }
+
+    for(auto &t : reducer_threads)
+    {
+        t.join();
+    }
+}
 
 int main(int argc, char* argv[])
 {
@@ -210,16 +235,16 @@ int main(int argc, char* argv[])
             path = string(argv[1]);
             mnum = atoi(argv[2]);
             rnum = atoi(argv[3]);
+
+            if(check_console_input(mnum, rnum, path))
+            {
+                return 1;
+            }
             cout << "yamr M: " << mnum << ", R: " << rnum << ", path: " << path << endl;
         }
         else
         {
             std::cerr << "Usage: yamr <src> <mnum> <rnum>\n";
-            return 1;
-        }
-
-        if(check_console_input(mnum, rnum, path))
-        {
             return 1;
         }
 
@@ -230,15 +255,46 @@ int main(int argc, char* argv[])
             //Map
             cout << "Map ->" << endl;
             vector<values_t> input_strings;
-            do_map(mnum, path, slices, input_strings);
+            auto mapper = [] (const string &line, values_t &strings)
+            {
+                strings.push_back(line);
+            };
+            do_map(/*mnum, */path, slices, input_strings, mapper);
 
             //Shuffle
             cout << "Shuffle ->" << endl;
-            vector<reducer_data_t> reducers_data;
-            do_shuffle(mnum, rnum, input_strings, reducers_data);
+            vector<shuffle_data_t> shuffle_data;
+            do_shuffle(/*mnum, */rnum, input_strings, shuffle_data);
 
             //Reduce
             cout << "Reduce ->" << endl;
+            auto reducer = [](const values_t &values, values_t &result)
+            {
+                unique_copy(values.begin(), values.end(), back_inserter(result));
+                auto last_found = result.begin();
+
+                for(int i = 1; ; ++i)
+                {
+                    auto it = adjacent_find(result.begin(), result.end(),
+                                       [i](string &first, string &second)
+                                        {
+                                            return first.substr(0, i) == second.substr(0, i);
+                                        }
+                                       );
+                    if(it != result.end())
+                    {
+                        last_found = it;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                string unique_prefix_string = *last_found;
+                result.clear();
+                result.push_back(unique_prefix_string);
+            };
+            do_reduce(rnum, shuffle_data, reducer);
         }
     }
     catch (std::exception& e)
