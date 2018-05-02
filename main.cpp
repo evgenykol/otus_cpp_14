@@ -3,18 +3,18 @@
 #include <fstream>
 #include <vector>
 #include <thread>
-#include <future>
 #include <functional>
 #include <algorithm>
 #include <mutex>
-
-#include <list>
+#include <tuple>
+#include <memory>
 
 #include "version.h"
 
 using namespace std;
 
 using values_t = vector<string>;
+using reducer_data_t = tuple<unique_ptr<mutex>, values_t, thread>;
 
 struct slice
 {
@@ -129,67 +129,65 @@ void do_map(int mnum_, const std::string &path_, const vector<slice> &slices_, v
 
     for(auto vct : input_strings_)
     {
-        cout << "container size = " << vct.size() << ", front = " << vct.front() << ", \t\tback = " << vct.back() << endl;
+        cout << "container size = " << vct.size()
+             << ", front =" << vct.front()
+             << ", \t\tback =" << vct.back() << endl;
     }
 }
 
-template <typename T>
-class ReduceContainer
-{
-    vector<T> values;
-    //mutex m;
-public:
-    ReduceContainer() {}
-    ReduceContainer(const ReduceContainer &rc) : values(rc.values)/*, m(rc.m) */{}
-    ReduceContainer(ReduceContainer &&rc)
-    {
-        values = move(rc.values);
-    }
-    ~ReduceContainer() {}
 
-    void insert(T& val)
-    {
-        //unique_lock<mutex> lk(m);
-        auto it = lower_bound(values.begin(), values.end(), val);
-        values.insert(it, val);
-    }
-
-    vector<T> &get_values()
-    {
-        return values;
-    }
-};
-
-void shuffle_thread(int rnum_, const values_t &strings_, vector<ReduceContainer<string>> &rcont_)
+void shuffle_thread(int rnum_, const values_t &strings_, vector<reducer_data_t> &rdata_)
 {
     for(auto s : strings_)
     {
         int rcont_id = hash<string>{}(s) % rnum_;
-        rcont_[rcont_id].insert(s);
+        //rdata_[rcont_id].insert(s);
     }
 }
 
-void do_shuffle(int mnum_, int rnum_, const values_t &strings_, vector<ReduceContainer<string>> &rcont_)
+void do_shuffle(int mnum_, int rnum_, const vector<values_t> &strings_, vector<reducer_data_t> &rdata_)
 {
     vector<thread> shuffle_threads;
 
-    auto t = thread(shuffle_thread, rnum_, strings_[0], rcont_);
-//    for(auto i = 0; i < mnum_; ++i)
-//    {
-//        shuffle_threads.push_back(thread(shuffle_thread, std::ref(rnum_), std::ref(strings_[i]), std::ref(rcont_)));
-//    }
+    rdata_.resize(rnum_);
+    for(auto &r : rdata_)
+    {
+        get<0>(r) = move(make_unique<mutex>());
+    }
 
-//    for(auto &t : shuffle_threads)
-//    {
-//        t.join();
-//    }
+    for(auto i = 0; i < mnum_; ++i)
+    {
+        const values_t &values = strings_[i];
+        shuffle_threads.push_back(
+                    thread([rnum_, values, &rdata_]
+                            {
+                                for(auto s : values)
+                                {
+                                    int r_id = hash<string>{}(s) % rnum_;
+                                    auto &m = get<0>(rdata_[r_id]);
+                                    auto &strs = get<1>(rdata_[r_id]);
 
-//    for(auto rc : rcont_)
-//    {
-//        cout << "container size = " << rc.get_values().size()
-//             << ", front = " << rc.get_values().front()
-//             << ", \t\tback = " << rc.get_values().back() << endl;
-//    }
+                                    lock_guard<mutex> lk(*m);
+                                    auto it = lower_bound(strs.begin(), strs.end(), s);
+                                    strs.insert(it, s);
+                                }
+                            }
+                           )
+                    );
+    }
+
+    for(auto &t : shuffle_threads)
+    {
+        t.join();
+    }
+
+    for(auto &rd : rdata_)
+    {
+        auto &values = get<1>(rd);
+        cout << "container size = " << values.size()
+             << ", front =" << values.front()
+             << ", \t\tback =" << values.back() << endl;
+    }
 }
 
 
@@ -230,15 +228,17 @@ int main(int argc, char* argv[])
         {
 
             //Map
+            cout << "Map ->" << endl;
             vector<values_t> input_strings;
             do_map(mnum, path, slices, input_strings);
 
             //Shuffle
-            vector<ReduceContainer<string>> shuffled_strings(rnum);
-            cout << shuffled_strings.size() << shuffled_strings[0].get_values().size() << endl;
-            shuffle_thread(rnum, input_strings[0], shuffled_strings);
+            cout << "Shuffle ->" << endl;
+            vector<reducer_data_t> reducers_data;
+            do_shuffle(mnum, rnum, input_strings, reducers_data);
 
             //Reduce
+            cout << "Reduce ->" << endl;
         }
     }
     catch (std::exception& e)
