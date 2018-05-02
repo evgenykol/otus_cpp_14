@@ -6,10 +6,15 @@
 #include <future>
 #include <functional>
 #include <algorithm>
+#include <mutex>
+
+#include <list>
 
 #include "version.h"
 
 using namespace std;
+
+using values_t = vector<string>;
 
 struct slice
 {
@@ -52,6 +57,8 @@ int split_file(const string &path, const int slices_count, vector<slice> &offset
     auto slice_size = file_size/slices_count;
     decltype(file_size) cur_offset = 0;
 
+    offsets.reserve(slices_count);
+
     f.seekg(cur_offset);
     while (cur_offset < file_size)
     {
@@ -79,12 +86,12 @@ int split_file(const string &path, const int slices_count, vector<slice> &offset
     return 0;
 }
 
-auto mapper = [] (string &line, vector<string> &strings)
+auto mapper = [] (string &line, values_t &strings)
 {
     strings.push_back(line);
 };
 
-void mapper_thread(const std::string &path_, const slice &slice_, vector<string> &strings, std::function<void(string &, vector<string> &)> m)
+void mapper_thread(const std::string &path_, const slice &slice_, values_t &strings, std::function<void(string &, values_t &)> m)
 {
     ifstream f(path_, ios_base::in);
     if(!f.is_open())
@@ -103,6 +110,88 @@ void mapper_thread(const std::string &path_, const slice &slice_, vector<string>
 
     f.close();
 }
+
+void do_map(int mnum_, const std::string &path_, const vector<slice> &slices_, vector<values_t> &input_strings_)
+{
+    input_strings_.reserve(mnum_);
+    vector<thread> mapper_threads;
+
+    for(auto i = 0; i < mnum_; ++i)
+    {
+        input_strings_.push_back(values_t());
+        mapper_threads.push_back(thread(mapper_thread, std::ref(path_), std::ref(slices_[i]), std::ref(input_strings_.back()), mapper));
+    }
+
+    for(auto &t : mapper_threads)
+    {
+        t.join();
+    }
+
+    for(auto vct : input_strings_)
+    {
+        cout << "container size = " << vct.size() << ", front = " << vct.front() << ", \t\tback = " << vct.back() << endl;
+    }
+}
+
+template <typename T>
+class ReduceContainer
+{
+    vector<T> values;
+    //mutex m;
+public:
+    ReduceContainer() {}
+    ReduceContainer(const ReduceContainer &rc) : values(rc.values)/*, m(rc.m) */{}
+    ReduceContainer(ReduceContainer &&rc)
+    {
+        values = move(rc.values);
+    }
+    ~ReduceContainer() {}
+
+    void insert(T& val)
+    {
+        //unique_lock<mutex> lk(m);
+        auto it = lower_bound(values.begin(), values.end(), val);
+        values.insert(it, val);
+    }
+
+    vector<T> &get_values()
+    {
+        return values;
+    }
+};
+
+void shuffle_thread(int rnum_, const values_t &strings_, vector<ReduceContainer<string>> &rcont_)
+{
+    for(auto s : strings_)
+    {
+        int rcont_id = hash<string>{}(s) % rnum_;
+        rcont_[rcont_id].insert(s);
+    }
+}
+
+void do_shuffle(int mnum_, int rnum_, const values_t &strings_, vector<ReduceContainer<string>> &rcont_)
+{
+    vector<thread> shuffle_threads;
+
+    auto t = thread(shuffle_thread, rnum_, strings_[0], rcont_);
+//    for(auto i = 0; i < mnum_; ++i)
+//    {
+//        shuffle_threads.push_back(thread(shuffle_thread, std::ref(rnum_), std::ref(strings_[i]), std::ref(rcont_)));
+//    }
+
+//    for(auto &t : shuffle_threads)
+//    {
+//        t.join();
+//    }
+
+//    for(auto rc : rcont_)
+//    {
+//        cout << "container size = " << rc.get_values().size()
+//             << ", front = " << rc.get_values().front()
+//             << ", \t\tback = " << rc.get_values().back() << endl;
+//    }
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -140,26 +229,16 @@ int main(int argc, char* argv[])
         if(!split_file(path, mnum, slices))
         {
 
-            //Mapper
-            vector<vector<string>> input_strings;
-            input_strings.reserve(mnum);
-            vector<thread> mapper_threads;
+            //Map
+            vector<values_t> input_strings;
+            do_map(mnum, path, slices, input_strings);
 
-            for(auto i = 0; i < mnum; ++i)
-            {
-                input_strings.push_back(vector<string>());
-                mapper_threads.push_back(thread(mapper_thread, std::ref(path), std::ref(slices[i]), std::ref(input_strings.back()), mapper));
-            }
+            //Shuffle
+            vector<ReduceContainer<string>> shuffled_strings(rnum);
+            cout << shuffled_strings.size() << shuffled_strings[0].get_values().size() << endl;
+            shuffle_thread(rnum, input_strings[0], shuffled_strings);
 
-            for(auto &t : mapper_threads)
-            {
-                t.join();
-            }
-
-            for(auto vct : input_strings)
-            {
-                cout << "container size = " << vct.size() << ", front = " << vct.front() << ", back = " << vct.back() << endl;
-            }
+            //Reduce
         }
     }
     catch (std::exception& e)
