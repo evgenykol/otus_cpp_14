@@ -127,13 +127,12 @@ void do_map(const std::string &path_, const vector<slice> &slices_, vector<value
         t.join();
     }
 
-    cout << "input_strings_ size = " << input_strings_.size() << " slices " << slices_.size() << endl;
-    for(auto vct : input_strings_)
-    {
-        cout << "container size = " << vct.size()
-             << ", front =" << vct.front()
-             << ", \t\tback =" << vct.back() << endl;
-    }
+//    for(auto vct : input_strings_)
+//    {
+//        cout << "container size = " << vct.size()
+//             << ", front =" << vct.front()
+//             << ", \t\tback =" << vct.back() << endl;
+//    }
 }
 
 void do_shuffle(int rnum_, const vector<values_t> &strings_, vector<shuffle_data_t> &sdata_)
@@ -172,13 +171,13 @@ void do_shuffle(int rnum_, const vector<values_t> &strings_, vector<shuffle_data
         t.join();
     }
 
-    for(auto &rd : sdata_)
-    {
-        auto &values = get<1>(rd);
-        cout << "container size = " << values.size()
-             << ", front =" << values.front()
-             << ", \t\tback =" << values.back() << endl;
-    }
+//    for(auto &rd : sdata_)
+//    {
+//        auto &values = get<1>(rd);
+//        cout << "container size = " << values.size()
+//             << ", front =" << values.front()
+//             << ", \t\tback =" << values.back() << endl;
+//    }
 }
 
 void do_reduce(int rnum_, const vector<shuffle_data_t> &sdata_, reducer_t r)
@@ -253,7 +252,7 @@ int main(int argc, char* argv[])
         {
 
             //Map
-            cout << "Map ->" << endl;
+            //cout << "Map ->" << endl;
             vector<values_t> input_strings;
             auto mapper = [] (const string &line, values_t &strings)
             {
@@ -262,12 +261,13 @@ int main(int argc, char* argv[])
             do_map(/*mnum, */path, slices, input_strings, mapper);
 
             //Shuffle
-            cout << "Shuffle ->" << endl;
+            //cout << "Shuffle ->" << endl;
             vector<shuffle_data_t> shuffle_data;
             do_shuffle(/*mnum, */rnum, input_strings, shuffle_data);
 
             //Reduce
-            cout << "Reduce ->" << endl;
+            //cout << "Reduce ->" << endl;
+
             auto reducer = [](const values_t &values, values_t &result)
             {
                 unique_copy(values.begin(), values.end(), back_inserter(result));

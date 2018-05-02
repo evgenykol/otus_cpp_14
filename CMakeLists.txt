@@ -7,8 +7,6 @@ endif()
 
 project(yamr VERSION 0.0.$ENV{TRAVIS_BUILD_NUMBER})
 
-# libboost-system-dev libboost-doc
-find_package(Boost COMPONENTS system REQUIRED)
 find_package(Threads)
 
 configure_file(version.h.in version.h)
