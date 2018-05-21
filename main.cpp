@@ -20,11 +20,13 @@ using reducer_t = std::function<void(const values_t &, values_t &)>;
 
 //https://en.cppreference.com/w/cpp/memory/unique_ptr/make_unique
 //for Travis build
-template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args)
-{
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
+#ifndef __APPLE__
+    template<typename T, typename... Args>
+    std::unique_ptr<T> make_unique(Args&&... args)
+    {
+        return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+    }
+#endif
 
 struct slice
 {
@@ -161,7 +163,9 @@ void do_shuffle(int rnum_, const vector<values_t> &strings_, vector<shuffle_data
                             {
                                 for(auto s : values)
                                 {
-                                    int r_id = hash<string>{}(s) % rnum_;
+                                    //hash
+                                    int r_id = hash<char>{}(s[0]) % rnum_;
+
                                     auto &m = get<0>(sdata_[r_id]);
                                     auto &strs = get<1>(sdata_[r_id]);
 
@@ -179,12 +183,21 @@ void do_shuffle(int rnum_, const vector<values_t> &strings_, vector<shuffle_data
         t.join();
     }
 
+//    int idx = 0;
 //    for(auto &rd : sdata_)
 //    {
 //        auto &values = get<1>(rd);
-//        cout << "container size = " << values.size()
-//             << ", front =" << values.front()
-//             << ", \t\tback =" << values.back() << endl;
+////        cout << "container size = " << values.size()
+////             << ", front =" << values.front()
+////             << ", \t\tback =" << values.back() << endl;
+
+//        ofstream of("shuff_" + to_string(idx) + ".txt");
+//        ++idx;
+//        for(auto &v : values)
+//        {
+//            of << v << "\n";
+//        }
+//        of.close();
 //    }
 }
 
@@ -208,7 +221,7 @@ void do_reduce(int rnum_, const vector<shuffle_data_t> &sdata_, reducer_t r)
                                 //f << result.size() << endl;
                                 for(auto &s : result)
                                 {
-                                    f << s << "\nlen = "<< s.length() << endl;
+                                    f << "len = "<< s.length() << "\nprefix: " << s << endl;
                                 }
                                 f.flush();
                                 f.close();
@@ -260,22 +273,18 @@ int main(int argc, char* argv[])
         {
 
             //Map
-            //cout << "Map ->" << endl;
             vector<values_t> input_strings;
             auto mapper = [] (const string &line, values_t &strings)
             {
                 strings.push_back(line);
             };
-            do_map(/*mnum, */path, slices, input_strings, mapper);
+            do_map(path, slices, input_strings, mapper);
 
             //Shuffle
-            //cout << "Shuffle ->" << endl;
             vector<shuffle_data_t> shuffle_data;
-            do_shuffle(/*mnum, */rnum, input_strings, shuffle_data);
+            do_shuffle(rnum, input_strings, shuffle_data);
 
             //Reduce
-            //cout << "Reduce ->" << endl;
-
             auto reducer = [](const values_t &values, values_t &result)
             {
                 unique_copy(values.begin(), values.end(), back_inserter(result));
